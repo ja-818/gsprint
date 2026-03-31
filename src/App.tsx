@@ -78,7 +78,12 @@ export function App() {
   if (!ready) {
     return (
       <div className="h-screen flex items-center justify-center bg-background text-foreground">
-        <p className="text-muted-foreground text-sm">Starting {agentName}...</p>
+        <Empty className="border-0">
+          <EmptyHeader>
+            <EmptyTitle>{agentName}</EmptyTitle>
+            <EmptyDescription>Starting up...</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       </div>
     );
   }

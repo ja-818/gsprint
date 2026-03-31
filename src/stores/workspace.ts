@@ -9,7 +9,7 @@ interface WorkspaceState {
 }
 
 const WORKSPACE_NAME = "gsprint";
-const WORKSPACE_FOLDER = "~";
+const WORKSPACE_FOLDER = "~/Documents/GSprint";
 
 export const useWorkspaceStore = create<WorkspaceState>((set) => ({
   workspace: null,
