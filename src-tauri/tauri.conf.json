@@ -1,0 +1,30 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nickelpack/tauri/v2/crates/tauri-config-schema/schema.json",
+  "productName": "gsprint",
+  "identifier": "com.gsprint.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 800,
+        "minHeight": 600,
+        "decorations": true,
+        "transparent": false,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": ["default"]
+    }
+  }
+}

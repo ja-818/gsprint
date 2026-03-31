@@ -1,0 +1,28 @@
+[package]
+name = "gsprint"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "gsprint_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+uuid = { version = "1", features = ["v4"] }
+keel-tauri = { path = "../../keel-and-deck/crates/keel-tauri" }
+keel-db = { path = "../../keel-and-deck/crates/keel-db" }
+keel-sessions = { path = "../../keel-and-deck/crates/keel-sessions" }
+keel-events = { path = "../../keel-and-deck/crates/keel-events" }
+keel-scheduler = { path = "../../keel-and-deck/crates/keel-scheduler" }
+keel-channels = { path = "../../keel-and-deck/crates/keel-channels" }
+keel-memory = { path = "../../keel-and-deck/crates/keel-memory" }
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+libsql = "0.6"

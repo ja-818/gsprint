@@ -1,0 +1,40 @@
+{
+  "name": "gsprint",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@deck-ui/board": "link:../keel-and-deck/packages/board",
+    "@deck-ui/chat": "link:../keel-and-deck/packages/chat",
+    "@deck-ui/connections": "link:../keel-and-deck/packages/connections",
+    "@deck-ui/core": "link:../keel-and-deck/packages/core",
+    "@deck-ui/events": "link:../keel-and-deck/packages/events",
+    "@deck-ui/layout": "link:../keel-and-deck/packages/layout",
+    "@deck-ui/memory": "link:../keel-and-deck/packages/memory",
+    "@deck-ui/review": "link:../keel-and-deck/packages/review",
+    "@deck-ui/routines": "link:../keel-and-deck/packages/routines",
+    "@deck-ui/skills": "link:../keel-and-deck/packages/skills",
+    "@tauri-apps/api": "^2.5.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.5",
+    "lucide-react": "^0.577.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@tailwindcss/vite": "^4.1.8",
+    "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.1.8",
+    "typescript": "^6.0.2",
+    "vite": "^6.3.5"
+  }
+}
