@@ -2,11 +2,11 @@
 
 ## What This Is
 
-"The visual sprint board for gstack" — a native macOS desktop app that visualizes Garry Tan's gstack sprint process as an interactive kanban board. Built with Keel & Deck, each sprint flows through 7 phases: Think, Plan, Build, Review, Test, Ship, Reflect.
+"The visual sprint board for gstack" — a native macOS desktop app that visualizes Garry Tan's gstack sprint process. Built with Keel & Deck. Uses a sidebar + two-view model: planning view (stepper + chat) and execution view (kanban + chat per ticket).
 
-## Origin
+## Working Directory
 
-Scaffolded from `create-keel-and-deck-app`, then customized for a board-first layout. GSprint has no sidebar and no default chat view — the kanban board is the primary interface.
+`~/Documents/GSprint/`
 
 ---
 
@@ -15,25 +15,25 @@ Scaffolded from `create-keel-and-deck-app`, then customized for a board-first la
 ```
 gsprint/
 ├── src/
-│   ├── App.tsx                  Main app shell (AppTopBar + NavPills + board + panels)
+│   ├── App.tsx                  Main app shell (AppSidebar + view router)
 │   ├── main.tsx                 React entry point
 │   ├── env.d.ts                 CSS module declarations
 │   ├── config/
-│   │   └── sprint-phases.ts     7 gstack phases: Think→Plan→Build→Review→Test→Ship→Reflect
+│   │   └── planning-steps.ts    4 planning sub-steps: Office Hours, CEO, Eng, Design Review
 │   ├── hooks/
 │   │   └── use-session-events.ts  Tauri event listener → Zustand stores
 │   ├── lib/
 │   │   ├── tauri.ts             Type-safe Tauri invoke wrappers
-│   │   └── types.ts             Domain types (Sprint, Phase, SprintCard)
+│   │   └── types.ts             Domain types (Sprint, Ticket, Phase)
 │   ├── stores/
-│   │   ├── ui.ts                ViewMode: "board" | "events" | "memory" | "retro"
+│   │   ├── ui.ts                Selected sprint, selected ticket
 │   │   ├── workspace.ts         Single implicit workspace (auto-created on launch)
-│   │   ├── issues.ts            Sprint cards / tasks within sprints
-│   │   ├── feeds.ts             Chat feed items (streaming, per-sprint)
-│   │   ├── events.ts            Event log entries
-│   │   └── memory.ts            Agent memories / sprint learnings
+│   │   ├── sprints.ts           Sprint list, phase transitions
+│   │   ├── tickets.ts           Execution tickets (children of sprints)
+│   │   ├── feeds.ts             Chat feed items (per-sprint and per-ticket)
+│   │   └── events.ts            Event log entries
 │   └── styles/
-│       └── globals.css          Tailwind + deck-ui tokens + green brand override
+│       └── globals.css          Tailwind + deck-ui tokens + YC Orange override
 ├── src-tauri/
 │   ├── src/
 │   │   ├── main.rs              Tauri entry point
@@ -49,25 +49,46 @@ gsprint/
 
 ---
 
+## Sprint Model
+
+```typescript
+interface Sprint {
+  id: string
+  name: string
+  phase: "planning" | "executing" | "done"
+  planningStep: string            // current planning sub-step
+  completedPlanningSteps: string[] // which steps are done
+}
+
+interface Ticket {
+  id: string
+  sprintId: string
+  title: string
+  status: "running" | "review" | "done"
+  lifecycle: "build" | "review" | "test" | "ship" | "reflect"
+}
+```
+
+---
+
 ## Key Architectural Decisions
 
-### Board-first layout
-The kanban board is always visible at full width. No sidebar, no default chat. When a sprint card is selected, chat opens in a SplitView panel showing that sprint's conversation.
+### Sidebar for sprints
+AppSidebar shows the sprint list. Each entry shows name + phase badge (Planning / Executing / Done). "New Sprint" button at the bottom.
 
-### Sprint phases as columns
-The board has 7 fixed columns matching gstack phases. Each column corresponds to a gstack command. Sprint cards move through columns as work progresses.
+### Two views per sprint
+The main area renders one of two views based on the selected sprint's phase:
+- **Planning view** — Stepper + ChatPanel for the linear planning flow
+- **Execution view** — KanbanBoard + SplitView with ChatPanel per ticket
 
-### Parallel sprints
-Multiple sprints can exist simultaneously at different phases. The board shows all active sprints, each as a card in its current phase column.
+### Planning is a linear flow
+4 sequential sub-steps: Office Hours, CEO Review, Eng Review, Design Review. The Stepper component shows progress. ChatPanel below handles the conversation. When all steps complete, the agent proposes execution tickets. User approves, sprint transitions to "executing".
 
-### NavPills for secondary views
-NavPills toggle between secondary panels: Events (activity log), Memory (learnings), Retro (retrospectives). These open alongside the board via SplitView.
+### Execution reuses Houston's pattern
+KanbanBoard with 3 columns (Running, Review, Done). Click a card to open SplitView with ChatPanel for that ticket's conversation. Each ticket has a mini-lifecycle: Build -> Review -> Test -> Ship -> Reflect.
 
-### ViewMode
-```typescript
-type ViewMode = "board" | "events" | "memory" | "retro";
-// "board" is the default — always starts here
-```
+### Tickets are children of sprints
+Created after planning phase completes. Multiple tickets can run in parallel with different agents.
 
 ---
 
@@ -75,29 +96,10 @@ type ViewMode = "board" | "events" | "memory" | "retro";
 
 | @deck-ui Package | Components Used |
 |-----------------|----------------|
-| layout | AppTopBar, NavPills, SplitView |
+| layout | AppSidebar, AppTopBar, NavPills, SplitView |
 | board | KanbanBoard |
 | chat | ChatPanel |
-| events | EventFeed |
-| memory | MemoryBrowser |
-| core | Empty, EmptyHeader, EmptyTitle, EmptyDescription |
-
----
-
-## Sprint Phase Config
-
-```typescript
-// config/sprint-phases.ts
-const SPRINT_PHASES = [
-  { id: "think",   label: "Think",   gstackCmd: "/office-hours" },
-  { id: "plan",    label: "Plan",    gstackCmd: "/plan-*" },
-  { id: "build",   label: "Build",   gstackCmd: null },
-  { id: "review",  label: "Review",  gstackCmd: "/review" },
-  { id: "test",    label: "Test",    gstackCmd: "/qa" },
-  { id: "ship",    label: "Ship",    gstackCmd: "/ship" },
-  { id: "reflect", label: "Reflect", gstackCmd: "/retro" },
-] as const;
-```
+| core | Stepper (NEW), Empty, EmptyHeader, EmptyTitle, EmptyDescription |
 
 ---
 
@@ -107,4 +109,4 @@ const SPRINT_PHASES = [
 Rust backend → emit("keel-event", KeelEvent::*) → Frontend listens → Zustand stores update → React re-renders
 ```
 
-KeelEvent types: FeedItem, SessionStatus, IssueStatusChanged, IssuesChanged, Toast, EventReceived, EventProcessed, SprintPhaseChanged, MemoryChanged, MemoryDeleted.
+KeelEvent types: FeedItem, SessionStatus, IssueStatusChanged, IssuesChanged, Toast, SprintPhaseChanged, TicketStatusChanged, PlanningStepChanged.

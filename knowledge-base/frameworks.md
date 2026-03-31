@@ -17,45 +17,79 @@ Override CSS custom properties after importing core's globals.css:
   --color-ring: #ff6600;
 }
 ```
-Every component using `bg-primary`, `text-primary-foreground`, etc. will use the green brand color.
+Every component using `bg-primary`, `text-primary-foreground`, etc. will use the YC Orange brand color.
 
 ### Workspace Store Pattern
 No project picker — auto-create on first launch:
 ```typescript
 const projects = await tauriProjects.list();
 let ws = projects.find((p) => p.name === "GSprint") ?? null;
-if (!ws) ws = await tauriProjects.create("GSprint", "~");
+if (!ws) ws = await tauriProjects.create("GSprint", "~/Documents/GSprint");
 ```
 
-### KanbanBoard with Custom Columns
-The KanbanBoard component from @deck-ui/board accepts custom column definitions. GSprint maps the 7 gstack phases to board columns:
+### AppSidebar for Sprint List
+AppSidebar from @deck-ui/layout renders the sprint list. Each item shows name + phase badge:
 ```typescript
-const columns = SPRINT_PHASES.map((phase) => ({
-  id: phase.id,
-  title: phase.label,
-  items: sprints.filter((s) => s.currentPhase === phase.id),
-}));
+<AppSidebar
+  items={sprints.map((s) => ({
+    id: s.id,
+    label: s.name,
+    badge: s.phase,        // "planning" | "executing" | "done"
+    active: s.id === selectedSprintId,
+  }))}
+  onSelect={(id) => selectSprint(id)}
+  footer={<NewSprintButton />}
+/>
+```
+
+### Stepper for Planning Progress
+Stepper from @deck-ui/core shows horizontal progress through planning sub-steps:
+```typescript
+const PLANNING_STEPS = [
+  { id: "office-hours", label: "Office Hours" },
+  { id: "ceo-review",   label: "CEO Review" },
+  { id: "eng-review",   label: "Eng Review" },
+  { id: "design-review", label: "Design Review" },
+];
+
+<Stepper
+  steps={PLANNING_STEPS}
+  currentStep={sprint.planningStep}
+  completedSteps={sprint.completedPlanningSteps}
+/>
+```
+
+### KanbanBoard for Execution Tickets
+KanbanBoard from @deck-ui/board shows tickets in 3 columns during execution:
+```typescript
+const columns = [
+  { id: "running", title: "Running", items: tickets.filter((t) => t.status === "running") },
+  { id: "review",  title: "Review",  items: tickets.filter((t) => t.status === "review") },
+  { id: "done",    title: "Done",    items: tickets.filter((t) => t.status === "done") },
+];
+```
+
+### SplitView for Ticket Detail
+Click a ticket card to open SplitView with ChatPanel (same pattern as Houston's issue detail):
+```typescript
+<SplitView>
+  <KanbanBoard columns={columns} onSelect={selectTicket} />
+  {selectedTicket && <ChatPanel feedId={selectedTicket.id} />}
+</SplitView>
 ```
 
 ---
 
-## gstack Integration
+## View Routing
 
-### Phase-to-Command Mapping
-Each sprint phase maps to a gstack command. When a sprint enters a phase, GSprint can trigger the corresponding gstack action:
-
-| Phase | gstack Command | Description |
-|-------|---------------|-------------|
-| Think | `/office-hours` | Brainstorm, explore problem space |
-| Plan | `/plan-*` | Define scope, break into tasks |
-| Build | (none) | Active development |
-| Review | `/review` | Code review, design review |
-| Test | `/qa` | Quality assurance |
-| Ship | `/ship` | Deploy, release |
-| Reflect | `/retro` | Retrospective, learnings |
-
-### Sprint Lifecycle
-A sprint is created in the Think column and moves rightward through phases. Sprints can be paused, and multiple sprints run in parallel at different phases.
+The main area renders based on selected sprint's phase:
+```typescript
+function MainView({ sprint }: { sprint: Sprint }) {
+  if (sprint.phase === "planning") return <PlanningView sprint={sprint} />;
+  if (sprint.phase === "executing") return <ExecutionView sprint={sprint} />;
+  return <DoneView sprint={sprint} />;
+}
+```
 
 ---
 
@@ -75,25 +109,19 @@ All Tauri commands use `map_err(|e| e.to_string())` pattern. Frontend gets error
 
 ## React / Zustand
 
-### ViewMode defaults to "board"
-Unlike DesktopClaw (which defaults to chat), GSprint defaults to the board view:
-```typescript
-type ViewMode = "board" | "events" | "memory" | "retro";
-viewMode: ViewMode; // defaults to "board", never null
-```
-
-### Feed store is per-sprint
-Each sprint has its own feed. The feed store keys items by sprint ID:
+### Feed store is per-sprint AND per-ticket
+Each sprint and each ticket has its own feed. The feed store keys items by entity ID:
 ```typescript
 feeds: Record<string, FeedItem[]>;
+// Key is sprint ID (for planning chat) or ticket ID (for execution chat)
 ```
 
 ---
 
 ## Gotchas
 
-1. **`@tauri-apps/api/window` import**: Use dynamic import in app code, NOT static. Never import in library code.
+1. **`@tauri-apps/api/window` import**: Use dynamic import in app code, NOT static.
 2. **Capabilities**: `core:default` does NOT include `start-dragging`. Add explicitly.
 3. **CSS imports order**: `@deck-ui/core/src/globals.css` must come before theme overrides.
-4. **Empty title**: Set `"title": ""` in tauri.conf.json to hide native title (overlay mode shows it otherwise).
-5. **pnpm-lock.yaml**: Delete and reinstall when bumping @deck-ui versions (`^` range may cache old).
+4. **Empty title**: Set `"title": ""` in tauri.conf.json to hide native title.
+5. **pnpm-lock.yaml**: Delete and reinstall when bumping @deck-ui versions.

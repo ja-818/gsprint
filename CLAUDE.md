@@ -1,49 +1,47 @@
 # Claude Session Protocol — GSprint
 
 ### MANDATORY DEBUGGING RULE
-When a bug occurs and the fix isn't immediately obvious: **NEVER guess.** Always:
-1. Add error logging (try/catch, window.onerror, console.error, eprintln!, etc.)
-2. Tell the user what to run and what output to share back
-3. Fix based on the ACTUAL error, not assumptions
-
-Guessing wastes time. Getting the real error is always faster.
+When a bug occurs and the fix isn't obvious: **NEVER guess.** Add error logging, tell user what to run, fix based on the ACTUAL error.
 
 ### MANDATORY STOPPING RULES
-Whenever this protocol tells you to "wait for approval", "wait for user feedback", or "ask the user", you MUST IMMEDIATELY STOP GENERATING YOUR RESPONSE.
-- End your text output right there.
-- Do NOT output the next phase.
-- Do NOT anticipate the user's answer.
-- You must physically stop your turn and return control to the user.
+When told to "wait for approval/feedback" or "ask the user": STOP generating immediately. Do NOT output the next phase or anticipate answers.
 
-Follow these phases IN ORDER for every interaction. Do not skip phases.
-
-**IMPORTANT: Always print the phase name exactly (e.g., "PHASE 1: Load Context") so the user knows we're following the protocol.**
+Follow phases IN ORDER. Always print the phase name exactly (e.g., "PHASE 1: Load Context").
 
 ---
 
 ## What This App Is
 
-**"The visual sprint board for gstack."** A native macOS desktop app that visualizes Garry Tan's [gstack](https://github.com/garrytan/gstack) sprint process as an interactive kanban board. Built with [Keel & Deck](https://github.com/ja-818/keel-and-deck), consuming @deck-ui packages from npm and keel-* crates from crates.io.
+**"The visual sprint board for gstack."** A native macOS desktop app that visualizes Garry Tan's [gstack](https://github.com/garrytan/gstack) sprint process. Built with [Keel & Deck](https://github.com/ja-818/keel-and-deck), consuming @deck-ui packages from npm and keel-* crates from crates.io.
 
-The app should feel like an homage to gstack — surfacing the sprint methodology as a visual, tactile experience.
+The app uses a **sidebar + two-view** model:
 
-### gstack Sprint Phases
-Every sprint flows through 7 phases, which map to gstack commands:
-1. **Think** — `/office-hours` — brainstorm, explore the problem space
-2. **Plan** — `/plan-*` — define scope, break into tasks
-3. **Build** — active development
-4. **Review** — `/review` — code review, design review
-5. **Test** — `/qa` — quality assurance
-6. **Ship** — `/ship` — deploy, release
-7. **Reflect** — `/retro` — retrospective, learnings
+### Sidebar
+- Sprint list (like Houston shows projects)
+- Uses `AppSidebar` from @deck-ui/layout
+- Each sprint shows: name + phase badge (Planning / Executing / Done)
+- "New Sprint" button at the bottom
+
+### Planning View (sprint phase = "planning")
+- Stepper at top: Office Hours -> CEO Review -> Eng Review -> Design Review
+- ChatPanel below for conversation with the planning agent
+- Agent runs each sub-phase in sequence
+- When all 4 steps complete, agent proposes execution tickets
+- User approves -> sprint moves to "executing" phase
+
+### Execution View (sprint phase = "executing")
+- KanbanBoard with columns: Running, Review, Done
+- Each card is a ticket generated from planning
+- Click card -> SplitView with ChatPanel (like Houston's issue detail)
+- Each ticket has its own mini-lifecycle: Build -> Review -> Test -> Ship -> Reflect
+- Multiple tickets can run in parallel with different agents
 
 ### Key Constraints
-- **Board-first layout** — the sprint kanban board is the main view, always visible
-- **No sidebar** — clean, focused board layout
-- **Brand: YC Orange** `#ff6600` as primary color (YC brand identity), via CSS custom property override
-- **Use @deck-ui components for everything** — if a component doesn't exist, build it in the library first, then consume it here
-- **Parallel sprints** — multiple sprints can run simultaneously, each at different phases
-- **Chat opens on card select** — selecting a sprint card opens a chat panel showing that sprint's conversation
+- **Sidebar + two-view model** — sidebar shows sprints, main area shows planning or execution view
+- **Brand: YC Orange** `#ff6600` as primary color, via CSS custom property override
+- **Use @deck-ui components for everything** — if a component doesn't exist, build it in the library first
+- **Parallel sprints** — multiple sprints can run simultaneously at different phases
+- **Working directory**: `~/Documents/GSprint/`
 
 ---
 
@@ -51,9 +49,9 @@ Every sprint flows through 7 phases, which map to gstack commands:
 
 1. Print "PHASE 1: Load Context"
 2. Read ALL knowledge base files:
-   - `/knowledge-base/architecture.md` — app structure, component usage, stores
-   - `/knowledge-base/frameworks.md` — Tauri 2, Keel & Deck patterns, gstack integration
-   - `/knowledge-base/design.md` — YC Orange brand, board layout, phase styling
+   - `/knowledge-base/architecture.md` — app structure, component usage, sprint model
+   - `/knowledge-base/frameworks.md` — Tauri 2, Keel & Deck patterns, view routing
+   - `/knowledge-base/design.md` — YC Orange brand, layout, view styling
 3. Briefly acknowledge what you loaded
 4. Then proceed to Phase 2
 
@@ -74,7 +72,7 @@ Every sprint flows through 7 phases, which map to gstack commands:
 2. Before planning:
    - **Does this belong in GSprint or in @deck-ui?** If it's reusable, it should be a library component.
    - **Is there an existing @deck-ui component?** Search before building.
-   - **Does it follow the board-first, parallel-sprints paradigm?**
+   - **Which view does it affect?** Sidebar, planning view, or execution view?
 3. If better approach exists: Say so clearly.
 4. If sound: Say "Approach looks sound".
 5. **STOP AND WAIT.**
@@ -153,8 +151,8 @@ Every sprint flows through 7 phases, which map to gstack commands:
 ## Use @deck-ui Components
 Every UI element should come from the library. If a component doesn't exist, build it in @deck-ui first, then consume it.
 
-## Sprint Board Is Primary
-The board is the main view. Chat only appears when a sprint card is selected (via SplitView). Never make chat the default view.
+## Sidebar + Two-View Model
+Sidebar always shows the sprint list. Main area shows the planning view or execution view depending on the selected sprint's phase. Never show a flat kanban as the primary view.
 
 ## Parallel Sprints Are First-Class
 Multiple sprints can exist at different phases simultaneously. Never assume one active sprint.
@@ -180,22 +178,15 @@ Never hardcode `#ff6600`. Always use `bg-primary`, `text-primary-foreground`, et
 
 ## Tauri Window Dragging
 - Requires `core:window:allow-start-dragging` in `capabilities/default.json`
-- Use `onDrag` prop on `AppTopBar` with dynamic import: `const { getCurrentWindow } = await import("@tauri-apps/api/window")`
-- Static top-level import of `@tauri-apps/api/window` can crash the app — always use dynamic import
-- Set `cursor-default select-none` on the drag region to prevent text cursor
-- Exclude interactive children from drag: `target.closest("button, a, input")`
+- Use dynamic import for `@tauri-apps/api/window` (static import crashes the app)
+- Set `cursor-default select-none` on drag region; exclude interactive children via `target.closest("button, a, input")`
 
 ## Tauri Overlay Title Bar
-- Set `"titleBarStyle": "Overlay"` and `"title": ""` in tauri.conf.json
-- Empty title prevents duplicate text (native title overlapping custom title)
-- Add `pl-[78px]` padding for macOS traffic lights
+- `"titleBarStyle": "Overlay"` and `"title": ""` in tauri.conf.json; add `pl-[78px]` for macOS traffic lights
 
 ## CSS Theme Override
-- Override in globals.css AFTER importing `@deck-ui/core/src/globals.css`
-- Use `@theme { --color-primary: #ff6600; }` block
-- Components using `bg-primary`, `text-primary-foreground`, `ring` automatically pick up the color
+- Override in globals.css AFTER importing `@deck-ui/core/src/globals.css` using `@theme { --color-primary: #ff6600; }` block
 
 ## Empty States
-- All use `Empty` from `@deck-ui/core` — big `text-2xl font-semibold` title, description, optional action button
-- No icon-in-a-box pattern — just text, centered vertically
+- Use `Empty` from `@deck-ui/core` — big title, description, optional action button, centered vertically
 - All containers must be `flex flex-col` for `flex-1 justify-center` to work

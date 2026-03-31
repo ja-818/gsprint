@@ -6,7 +6,7 @@ GSprint uses the @deck-ui design system with a YC Orange brand override — YC b
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-primary` | `#ff6600` | Active NavPills, phase indicators, focus rings, action buttons |
+| `--color-primary` | `#ff6600` | Active sidebar item, stepper progress, action buttons, focus rings |
 | `--color-primary-foreground` | `#ffffff` | Text on primary backgrounds |
 | `--color-ring` | `#ff6600` | Focus ring color |
 
@@ -17,38 +17,81 @@ All other tokens inherit from @deck-ui/core defaults (monochrome palette).
 ## Layout
 
 ```
-┌──────────────────────────────────────────────┐
-│ [traffic lights]     NavPills  │ bg-secondary │
-├──────────────────────────────────────────────┤
-│                                              │
-│  KanbanBoard (7 phase columns, full width)   │
-│  OR                                          │
-│  SplitView: Board | ChatPanel (per-sprint)   │
-│                                              │
-└──────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│ [traffic lights]   GSprint   NavPills  │ bg-secondary │
+├──────────┬──────────────────────────────────────────┤
+│          │                                          │
+│ Sidebar  │  Planning View (stepper + chat)          │
+│ Sprint   │  OR                                      │
+│ List     │  Execution View (kanban + ticket detail) │
+│          │                                          │
+│ [+ New]  │                                          │
+├──────────┴──────────────────────────────────────────┤
 ```
 
-- **No sidebar** — clean, board-focused layout
+- **AppSidebar**: Sprint list with phase badges, "New Sprint" button at bottom
 - **AppTopBar**: `bg-secondary`, 44px height, macOS traffic light padding
-- **NavPills**: Toggle between Events, Memory, Retro panels
-- **Board**: Full width when no card selected, left side in split view when card selected
-- **Chat**: Right side of SplitView, shows selected sprint's conversation
+- **NavPills**: Toggle between secondary panels if needed
+- **Main area**: Switches between planning view and execution view per sprint
 
 ---
 
-## Sprint Board Styling
+## Planning View
 
-### Phase Columns
-Each column represents a gstack phase. Columns have minimal headers showing the phase name.
+```
+┌──────────────────────────────────────┐
+│  ● Office Hours  ● CEO  ● Eng  ● Design  │  Stepper
+├──────────────────────────────────────┤
+│                                      │
+│            ChatPanel                 │
+│     (planning conversation)          │
+│                                      │
+└──────────────────────────────────────┘
+```
 
-### Sprint Cards
-Cards in the board show sprint name, brief description, and phase progress indicator.
+- **Stepper** at top shows 4 planning sub-steps with progress indicators
+- Completed steps show a checkmark, current step is highlighted in primary color
+- **ChatPanel** fills remaining space below the stepper
+- Agent drives the conversation through each sub-step sequentially
+- After all steps: agent proposes tickets, user approves to move to execution
 
-### Running Phase Glow
-When a sprint is actively being worked on (agent processing), the card gets the `animate-glow` treatment — a subtle pulsing border using the primary YC Orange color. This provides visual feedback that the agent is working.
+---
 
-### Phase Progress
-A horizontal indicator shows how far through the 7-phase pipeline a sprint has progressed.
+## Execution View
+
+```
+┌──────────────────────────────────────┐
+│  Running  │  Review  │  Done         │  KanbanBoard (3 columns)
+│  ┌─────┐  │  ┌─────┐ │  ┌─────┐     │
+│  │ T-1 │  │  │ T-3 │ │  │ T-5 │     │
+│  │ T-2 │  │  └─────┘ │  └─────┘     │
+│  └─────┘  │          │              │
+└──────────────────────────────────────┘
+```
+
+When a ticket is selected, splits into SplitView:
+```
+┌───────────────────┬──────────────────┐
+│  KanbanBoard      │  ChatPanel       │
+│  (3 columns)      │  (ticket chat)   │
+│                   │                  │
+└───────────────────┴──────────────────┘
+```
+
+### Ticket Cards
+- Show ticket title and current lifecycle step (Build / Review / Test / Ship / Reflect)
+- Running tickets get `animate-glow` treatment (pulsing primary-color border)
+- Lifecycle badge shows which mini-step the ticket is on
+
+---
+
+## Phase Badges (Sidebar)
+
+| Phase | Badge Style |
+|-------|-------------|
+| Planning | `bg-primary/10 text-primary` — orange tint |
+| Executing | `bg-primary text-primary-foreground` — solid orange |
+| Done | `bg-muted text-muted-foreground` — grey |
 
 ---
 
@@ -61,16 +104,19 @@ All empty states use the `Empty` component from @deck-ui/core:
 - **No icons in boxes** — just text, centered vertically
 - **flex-1 justify-center** — vertically centered in whatever container
 
-### Board Empty State
-When no sprints exist: "Start a sprint" title, "Create your first sprint to begin the gstack process" description, "New Sprint" action button.
+### No Sprints Empty State
+"Start a sprint" title, "Create your first sprint to begin planning" description, "New Sprint" action button.
+
+### No Tickets Empty State (Execution View)
+"No tickets yet" title, "Complete the planning phase to generate execution tickets" description.
 
 ---
 
 ## Rules
 
-1. **Green for interactive elements only.** Text, borders, backgrounds stay monochrome.
-2. **Board is the primary view.** Chat only appears when a sprint card is selected.
-3. **No sidebar, no project UI.** Single workspace, auto-created.
-4. **Same empty state pattern everywhere.** Big title, description, optional button.
-5. **Follow @deck-ui design system** for everything else (typography, spacing, shadows, animations).
-6. **Phase columns are always visible.** Even empty columns show, maintaining the 7-phase structure.
+1. **Orange for interactive elements only.** Text, borders, backgrounds stay monochrome.
+2. **Sidebar always visible.** Sprint list is the primary navigation.
+3. **Planning view for planning phase.** Stepper + chat, never a kanban.
+4. **Execution view for executing phase.** 3-column kanban + chat per ticket.
+5. **Same empty state pattern everywhere.** Big title, description, optional button.
+6. **Follow @deck-ui design system** for everything else (typography, spacing, shadows, animations).
