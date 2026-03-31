@@ -12,9 +12,9 @@ Override CSS custom properties after importing core's globals.css:
 @import "@deck-ui/core/src/globals.css";
 
 @theme {
-  --color-primary: #22c55e;
+  --color-primary: #ff6600;
   --color-primary-foreground: #ffffff;
-  --color-ring: #22c55e;
+  --color-ring: #ff6600;
 }
 ```
 Every component using `bg-primary`, `text-primary-foreground`, etc. will use the green brand color.

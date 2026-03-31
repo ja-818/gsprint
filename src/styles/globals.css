@@ -16,8 +16,11 @@
 @source "../../node_modules/@deck-ui/memory/src";
 @source "../../node_modules/@deck-ui/review/src";
 
+/* gsprint brand — YC Orange */
 @theme {
-  --color-primary: #22c55e;
+  --color-primary: #ff6600;
+  --color-primary-foreground: #ffffff;
+  --color-ring: #ff6600;
 }
 
 body {

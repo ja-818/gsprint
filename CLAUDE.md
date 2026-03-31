@@ -40,7 +40,7 @@ Every sprint flows through 7 phases, which map to gstack commands:
 ### Key Constraints
 - **Board-first layout** — the sprint kanban board is the main view, always visible
 - **No sidebar** — clean, focused board layout
-- **Brand: green** `#22c55e` as primary color (developer tool / terminal vibe), via CSS custom property override
+- **Brand: YC Orange** `#ff6600` as primary color (YC brand identity), via CSS custom property override
 - **Use @deck-ui components for everything** — if a component doesn't exist, build it in the library first, then consume it here
 - **Parallel sprints** — multiple sprints can run simultaneously, each at different phases
 - **Chat opens on card select** — selecting a sprint card opens a chat panel showing that sprint's conversation
@@ -53,7 +53,7 @@ Every sprint flows through 7 phases, which map to gstack commands:
 2. Read ALL knowledge base files:
    - `/knowledge-base/architecture.md` — app structure, component usage, stores
    - `/knowledge-base/frameworks.md` — Tauri 2, Keel & Deck patterns, gstack integration
-   - `/knowledge-base/design.md` — green brand, board layout, phase styling
+   - `/knowledge-base/design.md` — YC Orange brand, board layout, phase styling
 3. Briefly acknowledge what you loaded
 4. Then proceed to Phase 2
 
@@ -169,7 +169,7 @@ Errors surface to the user. No swallowed errors.
 All interactive elements must be visible without hovering.
 
 ## Brand Color via Tokens
-Never hardcode `#22c55e`. Always use `bg-primary`, `text-primary-foreground`, etc.
+Never hardcode `#ff6600`. Always use `bg-primary`, `text-primary-foreground`, etc.
 
 ---
 
@@ -192,7 +192,7 @@ Never hardcode `#22c55e`. Always use `bg-primary`, `text-primary-foreground`, et
 
 ## CSS Theme Override
 - Override in globals.css AFTER importing `@deck-ui/core/src/globals.css`
-- Use `@theme { --color-primary: #22c55e; }` block
+- Use `@theme { --color-primary: #ff6600; }` block
 - Components using `bg-primary`, `text-primary-foreground`, `ring` automatically pick up the color
 
 ## Empty States

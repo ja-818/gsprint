@@ -2,13 +2,13 @@
 
 ## Brand
 
-GSprint uses the @deck-ui design system with a green brand override — developer tool / terminal vibe.
+GSprint uses the @deck-ui design system with a YC Orange brand override — YC brand identity.
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--color-primary` | `#22c55e` | Active NavPills, phase indicators, focus rings, action buttons |
+| `--color-primary` | `#ff6600` | Active NavPills, phase indicators, focus rings, action buttons |
 | `--color-primary-foreground` | `#ffffff` | Text on primary backgrounds |
-| `--color-ring` | `#22c55e` | Focus ring color |
+| `--color-ring` | `#ff6600` | Focus ring color |
 
 All other tokens inherit from @deck-ui/core defaults (monochrome palette).
 
@@ -45,7 +45,7 @@ Each column represents a gstack phase. Columns have minimal headers showing the 
 Cards in the board show sprint name, brief description, and phase progress indicator.
 
 ### Running Phase Glow
-When a sprint is actively being worked on (agent processing), the card gets the `animate-glow` treatment — a subtle pulsing border using the primary green color. This provides visual feedback that the agent is working.
+When a sprint is actively being worked on (agent processing), the card gets the `animate-glow` treatment — a subtle pulsing border using the primary YC Orange color. This provides visual feedback that the agent is working.
 
 ### Phase Progress
 A horizontal indicator shows how far through the 7-phase pipeline a sprint has progressed.
